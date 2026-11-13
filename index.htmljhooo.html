@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PhysicsLab - Interactive Physics Experiments</title>
+<style>
+:root{--bg:#060a14;--card:#0e1628;--in:#09101f;--line:#1c2a47;--tx:#e8eefb;--mut:#8da2c6;--a:#38bdf8;--b:#6366f1}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(circle at 15% 0,#0d1c3d,var(--bg) 55%) fixed;color:var(--tx);line-height:1.6}
+a{color:inherit;text-decoration:none}
+nav{position:sticky;top:0;z-index:9;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 5vw;background:rgba(6,10,20,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav div{min-width:0;overflow-x:auto;white-space:nowrap}
+.logo{font-weight:800;font-size:1.25rem;letter-spacing:.3px;background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav div a{margin-left:24px;color:var(--mut);transition:color .2s}
+nav div a:hover{color:var(--a)}
+section{padding:64px 5vw;max-width:1200px;margin:0 auto}
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;min-height:78vh}
+h1{font-size:clamp(2.3rem,5.2vw,3.9rem);line-height:1.08;margin:0 0 18px}
+h1 span{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);font-size:1.15rem;max-width:34em;margin:0 0 30px}
+.cta{display:inline-block;padding:14px 30px;border-radius:12px;background:linear-gradient(90deg,var(--a),var(--b));color:#03101f;font-weight:700;transition:transform .2s,box-shadow .2s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(56,189,248,.3)}
+button.cta{border:0}
+h2{font-size:clamp(1.7rem,3.5vw,2.4rem);margin:0 0 6px}
+.sub{color:var(--mut);margin:0 0 10px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}
+button{font:inherit;cursor:pointer;color:var(--tx);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 16px;transition:border-color .2s,background .2s}
+button:hover{border-color:var(--a)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.cta:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.tabs button.on{background:linear-gradient(90deg,#0b4a73,#2c2f8f);border-color:var(--a)}
+.panel{display:none}
+.panel.on{display:block}
+.sim{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
+canvas{width:100%;height:370px;display:block;background:var(--in);border-radius:10px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{color:var(--mut);font-size:.85rem;margin:10px 0 0}
+h3{margin:0 0 4px}
+label{display:flex;justify-content:space-between;color:var(--mut);font-size:.92rem;margin-top:16px}
+label b{color:var(--tx)}
+input[type=range]{width:100%;accent-color:var(--a);margin:6px 0 0}
+select{width:100%;margin-top:6px;padding:9px;border-radius:10px;background:var(--in);color:var(--tx);border:1px solid var(--line);font:inherit}
+input[type=search]{width:100%;padding:10px 12px;border-radius:10px;background:var(--in);color:var(--tx);border:1px solid var(--line);font:inherit;margin:14px 0}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.res div{background:var(--in);border:1px solid var(--line);border-radius:10px;padding:10px}
+.res small{display:block;color:var(--mut);font-size:.8rem}
+.res b{color:var(--a);font-size:1.2rem}
+.res span{color:var(--mut);font-size:.85rem}
+.info{margin-top:18px;display:grid;gap:8px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+summary{cursor:pointer;font-weight:600}
+details p{color:var(--mut);margin:10px 0 0}
+.qrow{display:flex;gap:14px;flex-wrap:wrap}
+.qrow>div{flex:1;min-width:160px}
+.opts{display:grid;gap:8px;margin:14px 0}
+.opt{text-align:left;width:100%}
+.opt.ok{border-color:#22c55e;background:#0f2e1f}
+.opt.bad{border-color:#ef4444;background:#33141a}
+.bar{height:6px;background:var(--in);border-radius:6px;overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--b))}
+.fb{margin:10px 0;padding:10px 14px;border-radius:10px;background:var(--in);border:1px solid var(--line);color:var(--mut)}
+.fb b{color:var(--tx)}
+.big{font-size:2.4rem;font-weight:800;color:var(--a);margin:6px 0}
+#about p{color:var(--mut);max-width:44em}
+footer{text-align:center;color:var(--mut);padding:30px;border-top:1px solid var(--line);font-size:.9rem}
+@media(max-width:820px){.hero,.sim{grid-template-columns:1fr}.hero{min-height:auto;padding-top:30px}.hero svg{order:-1}canvas{height:270px}nav div a{margin-left:14px}section{padding:44px 5vw}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<nav><a class="logo" href="#home">PhysicsLab</a><div><a href="#home">Home</a><a href="#experiments">Experiments</a><a href="#quiz">Quiz</a><a href="#faq">FAQ</a><a href="#about">About</a></div></nav>
+
+<section id="home" class="hero">
+<div>
+<h1>Explore Physics.<br>Experiment. <span>Discover.</span></h1>
+<p>Understand the laws of physics through interactive experiments and real-time simulations.</p>
+<a class="cta" href="#experiments">Start Experimenting</a>
+</div>
+<svg viewBox="0 0 480 320" role="img" aria-label="Projectile trajectory illustration">
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+<radialGradient id="b"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#38bdf8"/></radialGradient></defs>
+<g stroke="#1c2a47" stroke-width="1"><path d="M40 40V270M120 40V270M200 40V270M280 40V270M360 40V270M440 40V270M30 70H450M30 130H450M30 190H450M30 250H450"/></g>
+<path d="M30 270H450" stroke="#8da2c6" stroke-width="2"/>
+<path d="M60 270Q250 -50 440 270" fill="none" stroke="url(#g)" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/>
+<path d="M60 270L110 200" stroke="#8da2c6" stroke-width="2" stroke-dasharray="4 4"/>
+<path d="M95 270A35 35 0 0 0 90 252" fill="none" stroke="#8da2c6"/>
+<circle cx="250" cy="110" r="22" fill="#38bdf8" opacity=".15"/><circle cx="250" cy="110" r="11" fill="url(#b)"/>
+<path d="M250 110V270" stroke="#38bdf8" stroke-dasharray="2 5" opacity=".6"/>
+<text x="258" y="200" fill="#8da2c6" font-size="14">H</text><text x="245" y="292" fill="#8da2c6" font-size="14">R</text><text x="112" y="244" fill="#8da2c6" font-size="14">θ</text>
+</svg>
+</section>
+
+<section id="experiments">
+<h2>Experiments</h2>
+<p class="sub">Choose an experiment, change the parameters, and watch the physics respond.</p>
+<div class="tabs" role="tablist">
+<button class="on" data-t="proj">Projectile Motion</button>
+<button data-t="fall">Free Fall</button>
+<button data-t="ohm">Ohm's Law</button>
+<button data-t="dens">Liquid Density</button>
+<button data-t="pend">Simple Pendulum</button>
+<button data-t="orb">Gravitational Orbit</button>
+<button data-t="coll">Collisions</button>
+<button data-t="snell">Snell's Law</button>
+<button data-t="lens">Thin Lens</button>
+</div>
+<div class="panel on" id="p_proj"></div>
+<div class="panel" id="p_fall"></div>
+<div class="panel" id="p_ohm"></div>
+<div class="panel" id="p_dens"></div>
+<div class="panel" id="p_pend"></div>
+<div class="panel" id="p_orb"></div>
+<div class="panel" id="p_coll"></div>
+<div class="panel" id="p_snell"></div>
+<div class="panel" id="p_lens"></div>
+</section>
+
+<section id="quiz">
+<h2>Quiz</h2>
+<p class="sub">Test what you learned. Pick a topic, answer the questions and read the explanation after each one.</p>
+<div class="card" id="quiz_box"></div>
+</section>
+
+<section id="faq">
+<h2>FAQ</h2>
+<p class="sub">Quick answers to common questions about the experiments.</p>
+<input type="search" id="faq_q" placeholder="Search questions..." aria-label="Search questions">
+<div class="info" id="faq_list"></div>
+<p class="note" id="faq_none" hidden>No questions match your search.</p>
+</section>
+
+<section id="about">
+<h2>About</h2>
+<p>PhysicsLab is a virtual laboratory for students. Every simulation runs live in your browser using the real equations of physics, with no air resistance and ideal components, so you can see exactly how each parameter changes the result. It needs no installation and works on computers, tablets and phones.</p>
+</section>
+<footer>PhysicsLab - learn by experimenting</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+const G={earth:9.81,moon:1.62,mars:3.71};
+const LQ={water:["Water",1000,"#3b82f6"],honey:["Honey",1420,"#f59e0b"],oil:["Olive oil",920,"#d9c93a"],glyc:["Glycerin",1260,"#67e8f9"],eth:["Ethanol",789,"#a5b4fc"],merc:["Mercury",13534,"#94a3b8"]};
+const NN=[["1","Air (n = 1.00)"],["1.33","Water (n = 1.33)"],["1.52","Glass (n = 1.52)"],["2.42","Diamond (n = 2.42)"]];
+const ANIM=["proj","fall","dens","pend","orb","coll"];
+const NR=["orb_s","pend_m"];
+const cfg={
+proj:{title:"Projectile Motion",grav:1,
+ctr:[["v","Initial velocity",5,40,1,20,"m/s"],["a","Launch angle",5,85,1,45,"°"]],
+res:[["H","Maximum height","m"],["R","Horizontal range","m"],["T","Flight time","s"]]},
+fall:{title:"Free Fall",grav:1,
+ctr:[["h","Initial height",1,100,1,50,"m"]],
+res:[["ch","Current height","m"],["ct","Elapsed time","s"],["cv","Current velocity","m/s"],["tt","Total falling time","s"],["fv","Final velocity","m/s"]]},
+ohm:{title:"Ohm's Law",grav:0,
+ctr:[["V","Voltage",1,24,1,12,"V"],["R","Resistance",1,100,1,20,"Ω"]],
+res:[["V","Voltage","V"],["R","Resistance","Ω"],["I","Current","A"],["P","Electrical power","W"]]},
+dens:{title:"Liquid Density",grav:0,
+sel:[["l","Liquid",[["water","Water (1000 kg/m³)"],["honey","Honey (1420 kg/m³)"],["oil","Olive oil (920 kg/m³)"],["glyc","Glycerin (1260 kg/m³)"],["eth","Ethanol (789 kg/m³)"],["merc","Mercury (13534 kg/m³)"],["layers","Layered: honey + water + oil"]],"water"]],
+ctr:[["r","Object density",100,10000,10,900,"kg/m³"],["V","Object volume",10,500,5,100,"cm³"]],
+res:[["rl","Liquid density","kg/m³"],["m","Object mass","g"],["W","Weight","N"],["Fb","Buoyant force","N"],["sub","Submerged volume","%"],["st","Result",""]]},
+pend:{title:"Simple Pendulum",grav:1,
+ctr:[["L","Length",.2,3,.1,1,"m"],["a","Release angle",5,80,1,30,"°"],["m","Bob mass",.1,5,.1,1,"kg"]],
+res:[["T","Period (small-angle formula)","s"],["Tm","Measured period","s"],["f","Frequency","Hz"],["vm","Maximum speed","m/s"],["E","Total energy","J"],["th","Current angle","°"]]},
+orb:{title:"Gravitational Orbit",grav:0,
+ctr:[["M","Star mass",.5,3,.1,1,"M☉"],["r","Starting distance",.5,3,.1,1,"AU"],["p","Launch speed (vs circular)",50,150,1,100,"%"],["s","Time speed",1,10,1,4,"×"]],
+res:[["r","Distance to star","AU"],["v","Orbital speed","km/s"],["t","Elapsed time","years"],["T","Orbital period","years"],["e","Eccentricity",""],["ty","Orbit type",""]]},
+coll:{title:"Elastic & Inelastic Collisions",grav:0,
+sel:[["t","Collision type",[["el","Elastic (e = 1)"],["part","Partially inelastic (e = 0.5)"],["inel","Perfectly inelastic (balls stick)"]],"el"]],
+ctr:[["m1","Mass of ball 1",1,10,1,2,"kg"],["m2","Mass of ball 2",1,10,1,3,"kg"],["v1","Velocity of ball 1",-10,10,1,6,"m/s"],["v2","Velocity of ball 2",-10,10,1,-2,"m/s"]],
+res:[["u1","Ball 1 velocity after","m/s"],["u2","Ball 2 velocity after","m/s"],["p","Total momentum (conserved)","kg·m/s"],["k0","Kinetic energy before","J"],["k1","Kinetic energy after","J"],["dk","Energy lost","%"]]},
+snell:{title:"Snell's Law (Refraction)",grav:0,
+sel:[["n1","Medium 1 (top)",NN,"1"],["n2","Medium 2 (bottom)",NN,"1.52"]],
+ctr:[["a","Angle of incidence",0,89,1,40,"°"]],
+res:[["t2","Refraction angle","°"],["tc","Critical angle","°"],["c1","Light speed in medium 1","×10⁸ m/s"],["c2","Light speed in medium 2","×10⁸ m/s"],["R","Reflected light","%"],["bend","Ray bends",""]]},
+lens:{title:"Thin Lens Simulator",grav:0,
+sel:[["t","Lens type",[["conv","Converging (convex)"],["div","Diverging (concave)"]],"conv"]],
+ctr:[["d","Object distance",5,60,1,30,"cm"],["f","Focal length",5,25,1,10,"cm"],["h","Object height",1,10,1,5,"cm"]],
+res:[["di","Image distance","cm"],["M","Magnification","×"],["hi","Image height","cm"],["nat","Image type",""]]}
+};
+const INFO={
+proj:[["What is it?","Projectile motion is the motion of an object thrown at an angle and moving only under the influence of gravity. Its path is a parabola."],
+["How does it work?","The horizontal velocity stays constant, while gravity changes the vertical velocity at a steady rate. The two motions are independent, and together they draw the curve you see."],
+["Physical equations","x = v₀·cosθ · t<br>y = v₀·sinθ · t − g·t²/2<br>Maximum height: H = v₀²·sin²θ / (2g)<br>Range: R = v₀²·sin(2θ) / g<br>Flight time: T = 2·v₀·sinθ / g"],
+["Real-world examples","A basketball shot, a kicked football, water from a fountain, a long jump, and the flight of a cannonball."],
+["What happens when you change the parameters?","A higher velocity increases height, range and flight time. The range is greatest at 45°, and angles θ and 90°−θ give the same range. Lower gravity (Moon, Mars) makes the flight much higher and longer. The model has no air resistance, and launch and landing heights are equal."]],
+fall:[["What is it?","Free fall is the motion of an object that starts at rest and is pulled down only by gravity."],
+["How does it work?","Gravity gives a constant acceleration g. The speed grows evenly with time, and the distance fallen grows with the square of time. Without air, mass does not change how fast things fall."],
+["Physical equations","h(t) = h₀ − g·t²/2<br>v(t) = g·t<br>Falling time: t = √(2h₀/g)<br>Final velocity: v = √(2g·h₀)"],
+["Real-world examples","A dropped tool, a diver leaving a platform, and the Apollo 15 astronaut dropping a hammer and a feather on the Moon."],
+["What happens when you change the parameters?","A greater height gives a longer fall and a faster impact; the time grows with √h₀. Weaker gravity (Moon, Mars) makes the fall slower. The faint ghost marks show equal time steps: they spread out because the object keeps speeding up. Air resistance is ignored."]],
+ohm:[["What is it?","Ohm's law describes how voltage, current and resistance are connected in an electric circuit."],
+["How does it work?","The battery pushes charges around the circuit with voltage V. The resistor limits the flow. A larger voltage gives more current, and a larger resistance gives less current. The moving dots show the current; faster dots mean more current."],
+["Physical equations","I = V / R<br>P = V × I (also P = V²/R = I²R)<br>R = V / I"],
+["Real-world examples","Phone chargers, LED current-limiting resistors, electric heaters, and dimmer circuits."],
+["What happens when you change the parameters?","Doubling the voltage doubles the current and makes the power four times larger. Doubling the resistance halves the current. The resistor glows hotter as the power grows. This is an ideal DC circuit with an ideal battery and wires of zero resistance."]],
+dens:[["What is it?","Density is the mass of a substance in a given volume (ρ = m / V). When an object is placed in a liquid, the liquid pushes it up with a buoyant force. Whether the object floats or sinks depends on how its density compares with the density of the liquid."],
+["How does it work?","The buoyant force equals the weight of the liquid pushed aside (Archimedes' principle). An object less dense than the liquid floats, and sinks only until the displaced liquid weighs as much as the object. A denser object sinks. In the layered tank the liquids sort themselves by density: honey at the bottom, water in the middle and oil on top, and the object stops where it is denser than the liquid above and lighter than the liquid below."],
+["Physical equations","Density: ρ = m / V<br>Weight: W = ρ_object · V · g<br>Buoyant force: F = ρ_liquid · g · V_submerged<br>Floating object: submerged fraction = ρ_object / ρ_liquid"],
+["Real-world examples","Steel ships, ice floating in water, oil spills on the sea, hot-air balloons, swimmers floating easily in the Dead Sea, and lava lamps."],
+["What happens when you change the parameters?","Raising the object's density lowers it deeper into the liquid until it sinks. A denser liquid such as honey or mercury pushes up harder, so even iron (about 7870 kg/m³) floats on mercury. Changing the volume changes the mass and the forces, but not whether the object floats. Try cork (about 240), ice (917), aluminium (2700) and iron (7870)."]],
+pend:[["What is it?","A simple pendulum is a small heavy bob on a light string that swings back and forth under the pull of gravity."],
+["How does it work?","Gravity pulls the bob back toward the lowest point. The bob speeds up as it falls, passes the bottom at maximum speed, and slows down as it climbs the other side. For small angles the swing is almost perfectly regular, and the time of one swing does not depend on the mass or the size of the swing."],
+["Physical equations","Period (small angles): T = 2π·√(L / g)<br>Frequency: f = 1 / T<br>Maximum speed: v = √(2gL·(1 − cosθ₀))<br>Energy: E = m·g·L·(1 − cosθ₀)<br>Motion: θ'' = −(g / L)·sinθ"],
+["Real-world examples","Grandfather clocks, playground swings, a wrecking ball, a Foucault pendulum, and metronomes."],
+["What happens when you change the parameters?","A longer string gives a longer period: four times the length doubles the period. Weaker gravity (Moon, Mars) slows the swing. The mass does not change the period. At large release angles the measured period becomes longer than the small-angle formula because the simulation solves the exact equation. There is no air resistance or friction."]],
+orb:[["What is it?","A gravitational orbit is the path of a body moving around a star because of gravity. The path can be a circle, an ellipse, or an open curve if the body is fast enough to escape."],
+["How does it work?","Gravity pulls the body toward the star while its sideways speed keeps it from falling straight in. The body moves fastest when it is close to the star and slowest when it is far away. If the launch speed is exactly the circular speed, the orbit is a circle."],
+["Physical equations","Newton's law of gravitation: F = G·M·m / r²<br>Circular speed: v = √(G·M / r)<br>Escape speed: v = √2 · √(G·M / r)<br>Kepler's third law: T² = a³ / M (T in years, a in AU, M in solar masses)<br>Specific energy: ε = v²/2 − G·M / r"],
+["Real-world examples","Planets around the Sun, the Moon around Earth, satellites and the International Space Station, comets on long ellipses, and spacecraft leaving the Solar System."],
+["What happens when you change the parameters?","A heavier star pulls harder, so the orbit is faster and shorter. Starting farther away gives a longer period. Below 100% of circular speed the body falls inward to a closer point and makes an ellipse; above 100% it swings farther out, and above about 141% it escapes. Very low speeds make the body crash into the star. The time speed slider only changes how fast the animation runs."]],
+coll:[["What is it?","A collision is a short, strong interaction between two objects. Here two balls move along a straight line and hit each other head-on."],
+["How does it work?","In every collision, the total momentum of the two balls stays the same. In an elastic collision the total kinetic energy is also conserved, and the balls bounce apart. In an inelastic collision some kinetic energy becomes heat and deformation. In a perfectly inelastic collision the balls stick together and move with one common velocity."],
+["Physical equations","Momentum: p = m₁v₁ + m₂v₂ (before = after)<br>Kinetic energy: K = ½m₁v₁² + ½m₂v₂²<br>Velocities after: v₁' = (m₁v₁ + m₂v₂ + m₂·e·(v₂ − v₁)) / (m₁ + m₂)<br>v₂' = (m₁v₁ + m₂v₂ + m₁·e·(v₁ − v₂)) / (m₁ + m₂)<br>e = 1 elastic, e = 0 perfectly inelastic"],
+["Real-world examples","Billiard and pool balls, Newton's cradle, car crashes, a bullet embedded in a wooden block, and colliding particles."],
+["What happens when you change the parameters?","With equal masses in an elastic collision, the balls swap velocities. A light ball hitting a heavy one bounces back. In a perfectly inelastic collision the energy lost is the largest possible. Ball 1 must be moving faster than ball 2 and be behind it, otherwise the balls never meet."]],
+snell:[["What is it?","Refraction is the bending of a light ray when it passes from one transparent material into another. Snell's law tells how much it bends."],
+["How does it work?","Light travels more slowly in a material with a higher refractive index n. When the ray enters a slower material it bends toward the normal (the dashed line perpendicular to the surface), and when it enters a faster material it bends away. Part of the light is always reflected. When light goes from a higher n to a lower n at a steep angle, no light can leave and all of it is reflected: this is total internal reflection."],
+["Physical equations","Snell's law: n₁·sinθ₁ = n₂·sinθ₂<br>Speed of light in a medium: v = c / n<br>Critical angle: sinθ_c = n₂ / n₁ (only when n₁ > n₂)<br>Reflected fraction: average of the two Fresnel polarisation formulas"],
+["Real-world examples","A straw that looks bent in a glass of water, glasses and camera lenses, prisms, diamonds that sparkle, and optical fibres that guide light by total internal reflection."],
+["What happens when you change the parameters?","A larger difference between n₁ and n₂ bends the ray more. At 0° the ray goes straight through. Choose glass or diamond on top and air below, then raise the angle: past the critical angle the refracted ray disappears and all the light is reflected. More light is reflected at steep angles."]],
+lens:[["What is it?","A thin lens bends light rays to form an image. A converging (convex) lens brings rays together, and a diverging (concave) lens spreads them apart."],
+["How does it work?","Three easy rays show where the image forms: a ray parallel to the axis bends through the focal point, a ray through the centre of the lens goes straight, and a ray through the front focal point comes out parallel. Where the rays meet is the image. If the rays only seem to meet when traced backward (dashed lines), the image is virtual."],
+["Physical equations","Thin lens equation: 1/f = 1/dₒ + 1/dᵢ<br>Magnification: M = −dᵢ / dₒ = hᵢ / hₒ<br>f > 0 converging, f < 0 diverging<br>Negative M means an inverted image, negative dᵢ means a virtual image"],
+["Real-world examples","Eyeglasses, cameras, projectors, telescopes, microscopes, magnifying glasses, and the lens inside your eye."],
+["What happens when you change the parameters?","For a converging lens, an object beyond the focal length gives a real, inverted image; moving the object closer makes the image larger and farther away. When the object is exactly at the focal point no image forms. Inside the focal length you get a virtual, upright, enlarged image, which is how a magnifying glass works. A diverging lens always gives a virtual, upright, smaller image. The vertical scale is stretched so the rays are easy to see."]]
+};
+const Z={},S={proj:{t:0,run:false},fall:{t:0,run:false},ohm:{ph:0},dens:{t:0,run:true},pend:{},orb:{},coll:{t:0,run:true},snell:{ph:0},lens:{}};
+let cur="proj";
+
+function build(k){
+const c=cfg[k];
+let s='<div class="sim"><div class="card"><canvas id="cv_'+k+'"></canvas><div class="btns">';
+if(ANIM.includes(k))s+='<button data-k="'+k+'" data-a="play">▶ Play</button><button data-k="'+k+'" data-a="pause">⏸ Pause</button><button data-k="'+k+'" data-a="restart">↻ Restart</button>';
+s+='<button data-k="'+k+'" data-a="reset">⟲ Reset</button></div><p class="note" id="n_'+k+'"></p></div><div class="card"><h3>'+c.title+'</h3>';
+(c.sel||[]).forEach(q=>{s+='<label for="'+k+'_'+q[0]+'">'+q[1]+'</label><select id="'+k+'_'+q[0]+'">'+q[2].map(o=>'<option value="'+o[0]+'"'+(o[0]==q[3]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>'});
+c.ctr.forEach(r=>{s+='<label for="'+k+'_'+r[0]+'">'+r[1]+'<b id="o_'+k+'_'+r[0]+'">'+r[5]+' '+r[6]+'</b></label><input type="range" id="'+k+'_'+r[0]+'" min="'+r[2]+'" max="'+r[3]+'" step="'+r[4]+'" value="'+r[5]+'">'});
+if(c.grav)s+='<label for="'+k+'_g">Gravity</label><select id="'+k+'_g"><option value="earth">Earth (9.81 m/s²)</option><option value="moon">Moon (1.62 m/s²)</option><option value="mars">Mars (3.71 m/s²)</option></select>';
+s+='<div class="res">';
+c.res.forEach(r=>{s+='<div><small>'+r[1]+'</small><b id="r_'+k+'_'+r[0]+'">-</b> <span>'+r[2]+'</span></div>'});
+s+='</div></div></div><div class="info">';
+INFO[k].forEach((i,n)=>{s+='<details'+(n==0?' open':'')+'><summary>'+i[0]+'</summary><p>'+i[1]+'</p></details>'});
+const p=$('#p_'+k);p.innerHTML=s+'</div>';
+p.querySelectorAll('input,select').forEach(el=>{el.oninput=el.onchange=e=>change(k,e.target.id)});
+}
+const val=(k,id)=>+$('#'+k+'_'+id).value;
+const sv=(k,id)=>$('#'+k+'_'+id).value;
+const grav=k=>G[$('#'+k+'_g').value];
+const set=(k,id,v)=>{const e=$('#r_'+k+'_'+id),t=typeof v=="string";e.textContent=t?v:v.toFixed(2);if(e.nextElementSibling)e.nextElementSibling.style.display=t?"none":""};
+
+function P(){
+const v=val("proj","v"),a=val("proj","a")*Math.PI/180,g=grav("proj");
+return{v,a,g,vx:v*Math.cos(a),vy:v*Math.sin(a),H:Math.pow(v*Math.sin(a),2)/(2*g),R:v*v*Math.sin(2*a)/g,T:2*v*Math.sin(a)/g};
+}
+function F(){const h=val("fall","h"),g=grav("fall");return{h,g,T:Math.sqrt(2*h/g),V:Math.sqrt(2*g*h)}}
+function O(){const V=val("ohm","V"),R=val("ohm","R"),I=V/R;return{V,R,I,P:V*I}}
+
+function D(){
+const rho=val("dens","r"),V=val("dens","V"),k=sv("dens","l"),L=k=="layers"?[LQ.honey,LQ.water,LQ.oil]:[LQ[k]],n=L.length,Hl=24,s=Math.cbrt(V),W=rho*V*1e-6*9.81;
+let i=n-1;while(i>=0&&L[i][1]<rho)i--;
+let y,Fb,sub,st;
+if(i==n-1){const f=Math.min(1,rho/L[i][1]);y=Hl-f*s+s/2;Fb=W;sub=f*100;st=f>=.999?"Neutral (suspended)":"Floats"}
+else if(i<0){y=s/2;Fb=L[0][1]*9.81*V*1e-6;sub=100;st="Sinks"}
+else{y=(i+1)*Hl/n;Fb=W;sub=100;st="Floats at interface"}
+return{rho,V,L,n,s,W,Fb,sub,st,y,m:rho*V*1e-3,rl:n>1?"920 – 1420":L[0][1]};
+}
+function C(){
+const m1=val("coll","m1"),m2=val("coll","m2"),v1=val("coll","v1"),v2=val("coll","v2"),e={el:1,part:.5,inel:0}[sv("coll","t")];
+const r1=.7*Math.cbrt(m1),r2=.7*Math.cbrt(m2),x1=4,x2=26,hit=v1>v2,th=hit?(x2-x1-r1-r2)/(v1-v2):Infinity;
+let u1=v1,u2=v2;
+if(hit){const q=m1*v1+m2*v2;u1=(q+m2*e*(v2-v1))/(m1+m2);u2=(q+m1*e*(v1-v2))/(m1+m2)}
+return{m1,m2,v1,v2,e,r1,r2,x1,x2,hit,th,u1,u2,p:m1*v1+m2*v2,k0:.5*m1*v1*v1+.5*m2*v2*v2,k1:.5*m1*u1*u1+.5*m2*u2*u2};
+}
+function cpos(c,t){
+if(!c.hit||t<=c.th)return[c.x1+c.v1*t,c.x2+c.v2*t];
+const d=t-c.th;return[c.x1+c.v1*c.th+c.u1*d,c.x2+c.v2*c.th+c.u2*d];
+}
+function SN(){
+const n1=+sv("snell","n1"),n2=+sv("snell","n2"),a=val("snell","a"),t1=a*Math.PI/180,q=n1*Math.sin(t1)/n2,tir=q>1,t2=tir?0:Math.asin(q);
+let R=1;
+if(!tir){const c1=Math.cos(t1),c2=Math.cos(t2),rs=(n1*c1-n2*c2)/(n1*c1+n2*c2),rp=(n1*c2-n2*c1)/(n1*c2+n2*c1);R=(rs*rs+rp*rp)/2}
+return{n1,n2,a,t1,t2,tir,R,crit:n1>n2?Math.asin(n2/n1)*180/Math.PI:null};
+}
+function LN(){
+const typ=sv("lens","t"),d=val("lens","d"),Fl=val("lens","f"),ho=val("lens","h"),f=typ=="conv"?Fl:-Fl,inf=f>0&&Math.abs(d-f)<.05,di=inf?Infinity:d*f/(d-f),M=inf?Infinity:-di/d;
+return{typ,d,f,ho,inf,di,M,hi:M*ho};
+}
+const GM=4*Math.PI*Math.PI;
+function OE(){
+const M=val("orb","M"),r0=val("orb","r"),v=val("orb","p")/100*2*Math.PI*Math.sqrt(M/r0),gm=GM*M,eps=v*v/2-gm/r0,hh=r0*v,e=Math.sqrt(Math.max(0,1+2*eps*hh*hh/(gm*gm))),bound=eps<-1e-9,a=bound?-gm/(2*eps):Infinity;
+return{M,r0,v,e,bound,a,T:bound?Math.pow(a,1.5)/Math.sqrt(M):Infinity,ty:!bound?"Escape":e<.01?"Circle":"Ellipse"};
+}
+function acc(M,x,y){const r2=x*x+y*y,k=-GM*M/(r2*Math.sqrt(r2));return[k*x,k*y]}
+function ostep(o,M,h){
+let[ax,ay]=acc(M,o.x,o.y);o.vx+=ax*h/2;o.vy+=ay*h/2;o.x+=o.vx*h;o.y+=o.vy*h;
+[ax,ay]=acc(M,o.x,o.y);o.vx+=ax*h/2;o.vy+=ay*h/2;
+}
+function orbPath(o){
+const p={x:o.r0,y:0,vx:0,vy:o.v},a=[[p.x,p.y]],tm=o.bound?Math.min(o.T*1.02,60):40;let t=0;
+for(let i=0;i<5000&&t<tm;i++){
+const r=Math.hypot(p.x,p.y),h=Math.min(.01*r*Math.sqrt(r)/Math.sqrt(o.M),tm-t);
+ostep(p,o.M,h);t+=h;a.push([p.x,p.y]);
+const q=Math.hypot(p.x,p.y);if(q>12||q<.1)break;
+}
+return a;
+}
+
+const RS={
+dens:()=>{S.dens.t=0;S.dens.run=true},
+coll:()=>{S.coll.t=0;S.coll.run=true;S.coll.done=false},
+pend:()=>{const a=val("pend","a")*Math.PI/180;S.pend={th:a,w:0,t:0,run:true,tl:null,mp:0,hist:[[0,a]]}},
+orb:()=>{const o=OE();S.orb={x:o.r0,y:0,vx:0,vy:o.v,t:0,run:true,done:false,tr:[],path:orbPath(o)}}
+};
+
+function change(k,id){
+cfg[k].ctr.forEach(r=>{$('#o_'+k+'_'+r[0]).textContent=$('#'+k+'_'+r[0]).value+' '+r[6]});
+if(!NR.includes(id)){if(RS[k])RS[k]();else if(S[k].run!==undefined){S[k].t=0;S[k].run=false}}
+upd(k);
+}
+function upd(k){
+if(k=="proj"){const p=P();set(k,"H",p.H);set(k,"R",p.R);set(k,"T",p.T);
+$('#n_proj').textContent=p.T>8?"Playback is sped up ×"+(p.T/8).toFixed(1)+" so the flight stays watchable. All calculated values are real.":"Playback runs in real time."}
+if(k=="fall"){const f=F();set(k,"tt",f.T);set(k,"fv",f.V);$('#n_fall').textContent="Faint ghost marks show equal time steps."}
+if(k=="ohm"){const o=O();set(k,"V",o.V);set(k,"R",o.R);set(k,"I",o.I);set(k,"P",o.P);$('#n_ohm').textContent="Moving dots show current. Faster dots mean more current; a hotter resistor means more power."}
+if(k=="dens"){const d=D();set(k,"rl",d.rl);set(k,"m",d.m);set(k,"W",d.W);set(k,"Fb",d.Fb);set(k,"sub",d.sub);set(k,"st",d.st);
+$('#n_dens').textContent="Every change drops the object again. In the layered tank the liquids sit by density: honey, water, oil."}
+if(k=="pend"){const L=val(k,"L"),g=grav(k),a=val(k,"a")*Math.PI/180,m=val(k,"m"),T=2*Math.PI*Math.sqrt(L/g);
+set(k,"T",T);set(k,"f",1/T);set(k,"vm",Math.sqrt(2*g*L*(1-Math.cos(a))));set(k,"E",m*g*L*(1-Math.cos(a)));
+$('#n_pend').textContent="Mass changes the energy but not the period. At large angles the measured period is longer than the small-angle formula."}
+if(k=="orb"){const o=OE();set(k,"T",o.bound?o.T:"∞");set(k,"e",o.e);set(k,"ty",o.ty);
+$('#n_orb').textContent="100% of circular speed gives a circle, less gives an ellipse, and above about 141% the body escapes. Time speed does not restart the orbit."}
+if(k=="coll"){const c=C();set(k,"u1",c.u1);set(k,"u2",c.u2);set(k,"p",c.p);set(k,"k0",c.k0);set(k,"k1",c.k1);set(k,"dk",c.k0>0?Math.max(0,(c.k0-c.k1)/c.k0*100):0);
+$('#n_coll').textContent=c.hit?"Momentum is always conserved. Kinetic energy is conserved only when the collision is elastic.":"The balls never meet: ball 1 must be behind ball 2 and moving faster than it."}
+if(k=="snell"){const o=SN(),c=2.99792;
+set(k,"t2",o.tir?"None (total reflection)":o.t2*180/Math.PI);set(k,"tc",o.crit===null?"None":o.crit);set(k,"c1",c/o.n1);set(k,"c2",c/o.n2);set(k,"R",o.R*100);
+set(k,"bend",o.tir?"Total internal reflection":o.a==0||o.n1==o.n2?"Not bent":o.n2>o.n1?"Toward the normal":"Away from the normal");
+$('#n_snell').textContent="Dashed line = normal. The reflected ray gets brighter when more light is reflected. Try glass on top and air below for total internal reflection."}
+if(k=="lens"){const o=LN();
+set(k,"di",o.inf?"∞":o.di);set(k,"M",o.inf?"∞":o.M);set(k,"hi",o.inf?"∞":o.hi);
+set(k,"nat",o.inf?"No image (rays parallel)":(o.di>0?"Real, inverted":"Virtual, upright")+", "+(Math.abs(o.M)>1.05?"enlarged":Math.abs(o.M)<.95?"reduced":"same size"));
+$('#n_lens').textContent="Solid lines are real rays, dashed lines are backward extensions. F marks the focal points, 2F twice the focal length. Vertical scale is stretched."}
+}
+function act(k,a){
+const s=S[k];
+if(a=="reset"){
+cfg[k].ctr.forEach(r=>{$('#'+k+'_'+r[0]).value=r[5]});
+(cfg[k].sel||[]).forEach(q=>{$('#'+k+'_'+q[0]).value=q[3]});
+if(cfg[k].grav)$('#'+k+'_g').value="earth";
+change(k);return;
+}
+if(a=="restart"){if(RS[k])RS[k]();else{s.t=0;s.run=true}return}
+if(a=="pause"){s.run=false;return}
+if(a=="play"){
+if(s.done&&RS[k]){RS[k]();return}
+const T=k=="proj"?P().T:k=="fall"?F().T:0;
+if(T&&s.t>=T)s.t=0;
+s.run=true;
+}
+}
+
+function fit(c){
+const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1;
+c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));
+const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);
+return{x,w:r.width,h:r.height};
+}
+function sizeCur(){Z[cur]=fit($('#cv_'+cur))}
+function show(k){
+cur=k;
+document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t==k));
+document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id=='p_'+k));
+sizeCur();
+}
+function arrow(x,x1,y1,x2,y2,col){
+const an=Math.atan2(y2-y1,x2-x1);
+x.strokeStyle=col;x.fillStyle=col;x.lineWidth=2.5;x.setLineDash([]);
+x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke();
+x.beginPath();x.moveTo(x2,y2);x.lineTo(x2-9*Math.cos(an-.4),y2-9*Math.sin(an-.4));x.lineTo(x2-9*Math.cos(an+.4),y2-9*Math.sin(an+.4));x.fill();
+}
+
+function drawProj(p,t){
+const{x,w,h}=Z.proj,pad=38,gy=h-pad;
+x.clearRect(0,0,w,h);
+const s=Math.min((w-2*pad)/p.R,(h-2*pad)/p.H),X=m=>pad+m*s,Y=m=>gy-m*s;
+x.strokeStyle="#16233e";x.lineWidth=1;
+for(let i=0;i<=10;i++){const gx=pad+(w-2*pad)*i/10;x.beginPath();x.moveTo(gx,pad/2);x.lineTo(gx,gy);x.stroke()}
+x.strokeStyle="#8da2c6";x.lineWidth=2;x.beginPath();x.moveTo(pad/2,gy);x.lineTo(w-pad/2,gy);x.stroke();
+x.setLineDash([4,6]);x.strokeStyle="#3a5a8c";x.lineWidth=2;x.beginPath();
+for(let i=0;i<=80;i++){const tt=p.T*i/80;const px=X(p.vx*tt),py=Y(p.vy*tt-p.g*tt*tt/2);i?x.lineTo(px,py):x.moveTo(px,py)}
+x.stroke();x.setLineDash([]);
+x.strokeStyle="#38bdf8";x.lineWidth=3;x.beginPath();
+const n=Math.max(1,Math.round(80*t/p.T));
+for(let i=0;i<=n;i++){const tt=Math.min(t,p.T*i/n);const px=X(p.vx*tt),py=Y(p.vy*tt-p.g*tt*tt/2);i?x.lineTo(px,py):x.moveTo(px,py)}
+x.stroke();
+x.fillStyle="#8da2c6";x.font="12px system-ui";
+x.fillText("0",X(0)-3,gy+16);x.textAlign="right";x.fillText(p.R.toFixed(1)+" m",X(p.R)+10,gy+16);x.textAlign="left";
+x.fillStyle="#6366f1";x.beginPath();x.arc(X(p.R/2),Y(p.H),4,0,7);x.fill();
+x.fillStyle="#8da2c6";x.fillText("H = "+p.H.toFixed(1)+" m",X(p.R/2)+8,Y(p.H)-8);
+const bx=X(p.vx*t),by=Y(p.vy*t-p.g*t*t/2);
+x.fillStyle="rgba(56,189,248,.25)";x.beginPath();x.arc(bx,by,15,0,7);x.fill();
+x.fillStyle="#fff";x.beginPath();x.arc(bx,by,8,0,7);x.fill();
+x.fillStyle="#e8eefb";x.fillText("t = "+t.toFixed(2)+" s",12,20);
+}
+
+function drawFall(f,t){
+const{x,w,h}=Z.fall,pad=32,gy=h-pad,s=(h-2*pad)/f.h;
+x.clearRect(0,0,w,h);
+const hh=tt=>Math.max(0,f.h-f.g*tt*tt/2),Yp=m=>gy-m*s;
+let st=1;for(const c of [1,2,5,10,20,25,50]){st=c;if(f.h/c<=8)break}
+x.font="12px system-ui";x.textAlign="right";
+for(let m=0;m<=f.h;m+=st){x.strokeStyle="#16233e";x.beginPath();x.moveTo(60,Yp(m));x.lineTo(w-20,Yp(m));x.stroke();x.fillStyle="#8da2c6";x.fillText(m+" m",52,Yp(m)+4)}
+x.textAlign="left";
+x.strokeStyle="#8da2c6";x.lineWidth=2;x.beginPath();x.moveTo(40,gy);x.lineTo(w-10,gy);x.stroke();
+const cx=w/2+20;
+for(let i=1;i<8;i++){const tk=f.T*i/8;if(t>=tk){x.fillStyle="rgba(99,102,241,.35)";x.beginPath();x.arc(cx,Yp(hh(tk))-12,10,0,7);x.fill()}}
+const cy=Yp(hh(t))-12;
+x.fillStyle="rgba(56,189,248,.25)";x.beginPath();x.arc(cx,cy,20,0,7);x.fill();
+x.fillStyle="#fff";x.beginPath();x.arc(cx,cy,12,0,7);x.fill();
+}
+
+function drawOhm(o,dt){
+const{x,w,h}=Z.ohm,S_=S.ohm;
+x.clearRect(0,0,w,h);
+const x1=70,x2=w-70,y1=70,y2=h-70,W=x2-x1,H=y2-y1,L=2*(W+H),my=(y1+y2)/2,mx=(x1+x2)/2;
+const g=Math.sqrt(Math.min(1,o.P/576));
+x.lineCap="round";x.lineJoin="round";x.lineWidth=4;x.strokeStyle="#5b78a8";
+x.beginPath();x.moveTo(x1,y2);x.lineTo(x2,y2);x.lineTo(x2,y1);x.lineTo(mx+50,y1);x.moveTo(mx-50,y1);x.lineTo(x1,y1);x.lineTo(x1,my-10);x.moveTo(x1,my+10);x.lineTo(x1,y2);x.stroke();
+x.strokeStyle="rgb("+(120+135*g|0)+","+(150-30*g|0)+","+(200-140*g|0)+")";x.shadowColor="rgba(255,140,60,"+g+")";x.shadowBlur=22*g;x.lineWidth=5;
+x.beginPath();x.moveTo(mx-50,y1);for(let i=0;i<7;i++)x.lineTo(mx-50+(i+.5)*100/7,y1+(i%2?10:-10));x.lineTo(mx+50,y1);x.stroke();x.shadowBlur=0;
+x.lineWidth=4;x.strokeStyle="#e8eefb";x.beginPath();x.moveTo(x1-22,my-10);x.lineTo(x1+22,my-10);x.stroke();
+x.lineWidth=4;x.beginPath();x.moveTo(x1-12,my+10);x.lineTo(x1+12,my+10);x.stroke();
+x.font="13px system-ui";x.fillStyle="#8da2c6";x.textAlign="left";
+x.fillText("+",x1+28,my-12);x.fillText("−",x1+18,my+16);x.fillText("Battery "+o.V+" V",x1+30,my+4);
+x.textAlign="center";x.fillText("Resistor "+o.R+" Ω",mx,y1-26);x.fillStyle="#38bdf8";x.font="600 15px system-ui";x.fillText("I = "+o.I.toFixed(2)+" A",mx,y2+34);
+S_.ph=(S_.ph+dt*(0.02+0.2*Math.sqrt(o.I/24)))%1;
+x.fillStyle="#38bdf8";x.shadowColor="#38bdf8";x.shadowBlur=8;
+for(let i=0;i<28;i++){
+const q=((S_.ph+i/28)%1)*L;let px,py;
+if(q<W){px=x1+q;py=y1}else if(q<W+H){px=x2;py=y1+q-W}else if(q<2*W+H){px=x2-(q-W-H);py=y2}else{px=x1;py=y2-(q-2*W-H)}
+if(px==x1&&Math.abs(py-my)<16)continue;
+x.beginPath();x.arc(px,py,4,0,7);x.fill();
+}
+x.shadowBlur=0;
+}
+
+function drawDens(d,t){
+const{x,w,h}=Z.dens;x.clearRect(0,0,w,h);x.textAlign="left";x.lineJoin="round";
+const sc=Math.min((h-26)/32,(w-24)/30),x0=(w-30*sc)/2,yb=h-12,X=c=>x0+c*sc,Y=c=>yb-c*sc,th=24/d.n;
+d.L.forEach((l,j)=>{
+x.fillStyle=l[2];x.globalAlpha=.55;x.fillRect(X(0),Y(th*(j+1)),30*sc,th*sc);x.globalAlpha=1;
+x.fillStyle="#e8eefb";x.font="12px system-ui";x.fillText(l[0]+" "+l[1]+" kg/m³",X(1),Y(th*j+th/2)+4);
+});
+x.strokeStyle="rgba(255,255,255,.35)";x.lineWidth=1.5;x.beginPath();x.moveTo(X(0),Y(24));x.lineTo(X(30),Y(24));x.stroke();
+x.strokeStyle="#5b78a8";x.lineWidth=3;x.beginPath();x.moveTo(X(0),Y(30));x.lineTo(X(0),Y(0));x.lineTo(X(30),Y(0));x.lineTo(X(30),Y(30));x.stroke();
+const tg=d.y,y0=24+d.s/2+4;
+let yc=t>5?tg:tg+(y0-tg)*Math.exp(-2.6*t)*Math.cos(5*t);yc=Math.max(d.s/2,yc);
+const sz=d.s*sc,ox=X(15),oy=Y(yc);
+x.fillStyle="hsl(30,35%,"+(62-Math.min(d.rho,10000)/10000*34|0)+"%)";x.fillRect(ox-sz/2,oy-sz/2,sz,sz);
+x.strokeStyle="#fff";x.lineWidth=1.5;x.strokeRect(ox-sz/2,oy-sz/2,sz,sz);
+if(t>1.5){
+const m=Math.max(d.W,d.Fb)||1,aw=Math.max(6,d.W/m*46),ab=Math.max(6,d.Fb/m*46);
+arrow(x,ox,oy,ox,oy+aw,"#f87171");arrow(x,ox,oy,ox,oy-ab,"#4ade80");
+x.font="600 12px system-ui";x.fillStyle="#f87171";x.fillText("W",ox+8,oy+aw);x.fillStyle="#4ade80";x.fillText("Fb",ox+8,oy-ab+8);
+}
+x.fillStyle="#8da2c6";x.font="12px system-ui";x.fillText("Object: "+d.rho+" kg/m³",8,16);
+}
+
+function stepPend(dt){
+const s=S.pend,g=grav("pend"),L=val("pend","L");
+if(s.run){
+let r=dt;
+while(r>1e-9){
+const h=Math.min(r,.004),pv=s.th;
+s.w-=g/L*Math.sin(s.th)*h;s.th+=s.w*h;s.t+=h;r-=h;
+if(pv<0&&s.th>=0){const tc=s.t-h*s.th/(s.th-pv);if(s.tl!==null)s.mp=tc-s.tl;s.tl=tc}
+}
+s.hist.push([s.t,s.th]);
+while(s.hist.length>1&&s.hist[0][0]<s.t-6)s.hist.shift();
+}
+set("pend","th",s.th*180/Math.PI);
+set("pend","Tm",s.mp?s.mp:"–");
+drawPend(s,L);
+}
+function drawPend(s,L){
+const{x,w,h}=Z.pend,ph=h*.7,px=w/2,py=24,sc=(ph-60)/3,Lp=L*sc,a0=val("pend","a")*Math.PI/180,r=7+val("pend","m")*3;
+x.clearRect(0,0,w,h);x.textAlign="left";
+x.strokeStyle="#8da2c6";x.lineWidth=3;x.beginPath();x.moveTo(px-50,py);x.lineTo(px+50,py);x.stroke();
+x.setLineDash([4,6]);x.strokeStyle="#3a5a8c";x.lineWidth=1.5;
+x.beginPath();x.moveTo(px,py);x.lineTo(px,py+Lp+r+10);x.stroke();
+x.beginPath();x.arc(px,py,Lp,Math.PI/2-a0,Math.PI/2+a0);x.stroke();x.setLineDash([]);
+const bx=px+Lp*Math.sin(s.th),by=py+Lp*Math.cos(s.th);
+x.strokeStyle="#e8eefb";x.lineWidth=2;x.beginPath();x.moveTo(px,py);x.lineTo(bx,by);x.stroke();
+x.fillStyle="rgba(56,189,248,.25)";x.beginPath();x.arc(bx,by,r+7,0,7);x.fill();
+x.fillStyle="#fff";x.beginPath();x.arc(bx,by,r,0,7);x.fill();
+x.fillStyle="#8da2c6";x.beginPath();x.arc(px,py,4,0,7);x.fill();
+x.font="12px system-ui";x.fillText("t = "+s.t.toFixed(2)+" s",10,18);
+const gy0=ph+10,gh=h-gy0-8,gm=gy0+gh/2;
+x.strokeStyle="#16233e";x.lineWidth=1;x.strokeRect(10,gy0,w-20,gh);
+x.beginPath();x.moveTo(10,gm);x.lineTo(w-10,gm);x.stroke();
+x.strokeStyle="#38bdf8";x.lineWidth=2;x.beginPath();
+s.hist.forEach((p,i)=>{const gx=10+(w-20)*(1-(s.t-p[0])/6),gyy=gm-p[1]/a0*(gh/2-4);i?x.lineTo(gx,gyy):x.moveTo(gx,gyy)});
+x.stroke();
+x.fillStyle="#8da2c6";x.font="11px system-ui";x.fillText("Angle over the last 6 s",16,gy0+13);
+}
+
+function stepOrb(dt){
+const s=S.orb,M=val("orb","M");
+if(s.run&&!s.done){
+let rem=dt*val("orb","s")*.05,n=0;
+while(rem>1e-9&&n++<3000){
+const r=Math.hypot(s.x,s.y),h=Math.min(rem,.004*r*Math.sqrt(r)/Math.sqrt(M));
+ostep(s,M,h);rem-=h;s.t+=h;
+const q=Math.hypot(s.x,s.y);
+if(q<.1){s.done=true;s.run=false;set("orb","ty","Crashed into the star");break}
+if(q>12){s.done=true;s.run=false;break}
+}
+s.tr.push([s.x,s.y]);if(s.tr.length>400)s.tr.shift();
+}
+set("orb","r",Math.hypot(s.x,s.y));set("orb","v",Math.hypot(s.vx,s.vy)*4.74047);set("orb","t",s.t);
+drawOrb(s,M);
+}
+function drawOrb(s,M){
+const{x,w,h}=Z.orb;x.clearRect(0,0,w,h);x.textAlign="left";
+const sc=Math.min(w,h)/2*.9/3.5,cx=w/2,cy=h/2,X=a=>cx+a*sc,Y=a=>cy-a*sc;
+x.font="11px system-ui";x.lineWidth=1;
+for(let r=1;r<=3;r++){x.setLineDash([3,6]);x.strokeStyle="#1f2f52";x.beginPath();x.arc(cx,cy,r*sc,0,7);x.stroke();x.setLineDash([]);x.fillStyle="#5d7399";x.fillText(r+" AU",cx+r*sc*.71+3,cy-r*sc*.71)}
+x.setLineDash([4,6]);x.strokeStyle="#3a5a8c";x.lineWidth=1.5;x.beginPath();
+s.path.forEach((p,i)=>{i?x.lineTo(X(p[0]),Y(p[1])):x.moveTo(X(p[0]),Y(p[1]))});
+x.stroke();x.setLineDash([]);
+x.strokeStyle="#38bdf8";x.lineWidth=2.5;x.beginPath();
+s.tr.forEach((p,i)=>{i?x.lineTo(X(p[0]),Y(p[1])):x.moveTo(X(p[0]),Y(p[1]))});
+x.stroke();
+const R=5+2.5*M,gr=x.createRadialGradient(cx,cy,0,cx,cy,R*2.6);
+gr.addColorStop(0,"rgba(253,224,71,.9)");gr.addColorStop(1,"rgba(253,224,71,0)");
+x.fillStyle=gr;x.beginPath();x.arc(cx,cy,R*2.6,0,7);x.fill();
+x.fillStyle="#fde047";x.beginPath();x.arc(cx,cy,R,0,7);x.fill();
+const bx=X(s.x),by=Y(s.y),v=Math.hypot(s.vx,s.vy);
+if(!s.done&&v>0){const L=Math.min(14+3*v,56);arrow(x,bx,by,bx+s.vx/v*L,by-s.vy/v*L,"#f472b6")}
+x.fillStyle="rgba(56,189,248,.25)";x.beginPath();x.arc(bx,by,11,0,7);x.fill();
+x.fillStyle="#fff";x.beginPath();x.arc(bx,by,6,0,7);x.fill();
+}
+
+function drawColl(c,t){
+const{x,w,h}=Z.coll;x.clearRect(0,0,w,h);
+const sc=w/30,gy=h*.66,p=cpos(c,t),after=c.hit&&t>c.th,v=after?[c.u1,c.u2]:[c.v1,c.v2],R=[c.r1,c.r2],col=["#38bdf8","#6366f1"],m=[c.m1,c.m2];
+x.strokeStyle="#8da2c6";x.lineWidth=2;x.setLineDash([]);x.beginPath();x.moveTo(0,gy);x.lineTo(w,gy);x.stroke();
+x.textAlign="center";
+for(let i=0;i<2;i++){
+const cx=p[i]*sc,r=R[i]*sc,cy=gy-r,lx=Math.min(w-44,Math.max(44,cx));
+x.fillStyle=col[i];x.beginPath();x.arc(cx,cy,r,0,7);x.fill();
+if(Math.abs(v[i])>.05)arrow(x,cx,cy-r-14,cx+v[i]*5,cy-r-14,"#e8eefb");
+x.fillStyle="#8da2c6";x.font="12px system-ui";
+x.fillText("v = "+v[i].toFixed(1)+" m/s",lx,cy-r-24);
+x.fillText("m"+(i+1)+" = "+m[i]+" kg",lx,gy+20+i*16);
+}
+if(c.hit&&Math.abs(t-c.th)<.15){
+const r1=c.r1*sc,cx=(c.x1+c.v1*c.th+c.r1)*sc;
+x.strokeStyle="#fde047";x.lineWidth=3;x.beginPath();x.arc(cx,gy-r1,r1+8+(t-c.th+.15)*60,0,7);x.stroke();
+}
+x.textAlign="left";x.fillStyle="#e8eefb";x.font="12px system-ui";x.fillText("t = "+t.toFixed(2)+" s",12,20);
+}
+
+function drawSnell(o,dt){
+const{x,w,h}=Z.snell,s=S.snell,cx=w/2,cy=h/2,L=Math.min(w,h)*.42;
+s.ph=(s.ph+dt*40)%14;
+x.clearRect(0,0,w,h);x.textAlign="left";
+x.fillStyle="rgba(56,189,248,"+(.04+.1*(o.n1-1))+")";x.fillRect(0,0,w,cy);
+x.fillStyle="rgba(56,189,248,"+(.04+.1*(o.n2-1))+")";x.fillRect(0,cy,w,h-cy);
+x.setLineDash([]);x.strokeStyle="#8da2c6";x.lineWidth=2;x.beginPath();x.moveTo(0,cy);x.lineTo(w,cy);x.stroke();
+x.setLineDash([5,6]);x.lineWidth=1;x.beginPath();x.moveTo(cx,10);x.lineTo(cx,h-10);x.stroke();x.setLineDash([]);
+const ray=(ax,ay,bx,by,col,al)=>{
+x.globalAlpha=al;x.strokeStyle=col;x.lineWidth=3;x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();
+x.setLineDash([2,12]);x.lineDashOffset=-s.ph;x.strokeStyle="#fff";x.lineWidth=4;x.stroke();
+x.setLineDash([]);x.lineDashOffset=0;x.globalAlpha=1;
+};
+const si=Math.sin(o.t1),co=Math.cos(o.t1);
+ray(cx-L*si,cy-L*co,cx,cy,"#fde047",1);
+ray(cx,cy,cx+L*si,cy-L*co,"#fde047",.25+.75*o.R);
+if(!o.tir)ray(cx,cy,cx+L*Math.sin(o.t2),cy+L*Math.cos(o.t2),"#38bdf8",1);
+x.strokeStyle="#8da2c6";x.lineWidth=1.5;
+x.beginPath();x.arc(cx,cy,34,-Math.PI/2-o.t1,-Math.PI/2);x.stroke();
+if(!o.tir){x.beginPath();x.arc(cx,cy,34,Math.PI/2-o.t2,Math.PI/2);x.stroke()}
+x.fillStyle="#e8eefb";x.font="13px system-ui";
+x.fillText("n₁ = "+o.n1.toFixed(2),10,22);x.fillText("θ₁ = "+o.a+"°",10,40);
+x.fillText("n₂ = "+o.n2.toFixed(2),10,h-30);
+x.fillText(o.tir?"Total internal reflection":"θ₂ = "+(o.t2*180/Math.PI).toFixed(1)+"°",10,h-12);
+}
+
+function drawLens(o){
+const{x,w,h}=Z.lens,cx=w/2,cy=h/2,sx=(w/2-14)/65,sy=h*.04,X=c=>cx+c*sx,Y=c=>cy-c*sy,xr=(w-cx)/sx,xl=-cx/sx;
+x.clearRect(0,0,w,h);x.setLineDash([]);
+x.strokeStyle="#5b78a8";x.lineWidth=1.5;x.beginPath();x.moveTo(0,cy);x.lineTo(w,cy);x.stroke();
+x.fillStyle="#8da2c6";x.font="12px system-ui";x.textAlign="center";
+[[o.f,"F"],[-o.f,"F"],[2*o.f,"2F"],[-2*o.f,"2F"]].forEach(q=>{x.beginPath();x.arc(X(q[0]),cy,3,0,7);x.fill();x.fillText(q[1],X(q[0]),cy+18)});
+const top=cy-h*.44,bot=cy+h*.44;
+x.fillStyle="rgba(56,189,248,.18)";x.strokeStyle="#38bdf8";x.lineWidth=2;x.beginPath();
+if(o.f>0){x.moveTo(cx,top);x.quadraticCurveTo(cx+14,cy,cx,bot);x.quadraticCurveTo(cx-14,cy,cx,top)}
+else{x.moveTo(cx-10,top);x.lineTo(cx+10,top);x.quadraticCurveTo(cx+2,cy,cx+10,bot);x.lineTo(cx-10,bot);x.quadraticCurveTo(cx-2,cy,cx-10,top)}
+x.fill();x.stroke();
+const seg=(a,b,c,d,col,dash)=>{x.strokeStyle=col;x.lineWidth=2;x.setLineDash(dash?[5,5]:[]);x.beginPath();x.moveTo(X(a),Y(b));x.lineTo(X(c),Y(d));x.stroke();x.setLineDash([])};
+const rays=[[o.ho,-o.ho/o.f,"#fde047"],[0,-o.ho/o.d,"#fb923c"]];
+if(o.f>0&&!o.inf)rays.push([-o.ho*o.f/(o.d-o.f),0,"#a3e635"]);
+rays.forEach(r=>{
+seg(-o.d,o.ho,0,r[0],r[2]);
+seg(0,r[0],xr,r[0]+r[1]*xr,r[2]);
+if(!o.inf&&o.di<0){const xe=Math.max(o.di,xl);seg(0,r[0],xe,r[0]+r[1]*xe,r[2],true)}
+});
+const arr=(c,hh,col,dash)=>{
+seg(c,0,c,hh,col,dash);
+const px=X(c),py=Y(hh),dir=hh>=0?1:-1;
+x.fillStyle=col;x.beginPath();x.moveTo(px,py);x.lineTo(px-5,py+dir*9);x.lineTo(px+5,py+dir*9);x.fill();
+};
+arr(-o.d,o.ho,"#38bdf8",false);
+if(!o.inf)arr(o.di,o.hi,"#f472b6",o.di<0);
+x.fillStyle="#8da2c6";x.textAlign="left";x.fillText("Object",Math.max(4,X(-o.d)-20),cy+34);
+if(!o.inf){x.textAlign="center";x.fillText("Image",Math.min(w-24,Math.max(24,X(o.di))),cy+34)}
+x.textAlign="left";
+}
+
+let last=performance.now();
+function loop(n){
+const dt=Math.min((n-last)/1000,.1);last=n;
+if(Z[cur]){
+if(cur=="proj"){const p=P(),s=S.proj;
+if(s.run){s.t+=dt*Math.max(1,p.T/8);if(s.t>=p.T){s.t=p.T;s.run=false}}
+drawProj(p,s.t)}
+else if(cur=="fall"){const f=F(),s=S.fall;
+if(s.run){s.t+=dt;if(s.t>=f.T){s.t=f.T;s.run=false}}
+const t=s.t;set("fall","ch",Math.max(0,f.h-f.g*t*t/2));set("fall","ct",t);set("fall","cv",Math.min(f.V,f.g*t));
+drawFall(f,t)}
+else if(cur=="ohm"){const o=O();set("ohm","I",o.I);drawOhm(o,dt)}
+else if(cur=="dens"){const s=S.dens;if(s.run)s.t+=dt;drawDens(D(),s.t)}
+else if(cur=="pend")stepPend(dt);
+else if(cur=="orb")stepOrb(dt);
+else if(cur=="coll"){const c=C(),s=S.coll;
+if(s.run){s.t+=dt;if(s.t>(c.hit?c.th+3:8)){s.run=false;s.done=true}}
+drawColl(c,s.t)}
+else if(cur=="snell")drawSnell(SN(),dt);
+else if(cur=="lens")drawLens(LN());
+}
+requestAnimationFrame(loop);
+}
+
+/* ---------- Quiz ---------- */
+const TOP={all:"All topics",proj:"Projectile Motion",fall:"Free Fall",ohm:"Ohm's Law",dens:"Liquid Density",pend:"Simple Pendulum",orb:"Gravitational Orbit",coll:"Collisions",snell:"Snell's Law",lens:"Thin Lens"};
+const QZ=[
+["proj","At which launch angle is the range greatest (no air resistance, equal launch and landing heights)?",["30°","45°","60°","90°"],1,"R = v₀²·sin(2θ)/g is largest when sin(2θ) = 1, which happens at θ = 45°."],
+["proj","Which two launch angles give the same range?",["30° and 60°","20° and 50°","45° and 90°","10° and 20°"],0,"Angles θ and 90° − θ give the same value of sin(2θ), so the range is equal."],
+["proj","At the highest point of the flight, which statement is true?",["The velocity is zero","The vertical velocity is zero","The horizontal velocity is zero","Gravity stops acting"],1,"Only the vertical velocity is zero there. The horizontal velocity stays constant and gravity keeps acting."],
+["fall","A hammer and a feather are dropped together on the Moon. What happens?",["The hammer lands first","The feather lands first","They land together","Both float away"],2,"With no air, all objects fall with the same acceleration, as the Apollo 15 astronaut showed."],
+["fall","An object is dropped from four times the height. The fall time becomes...",["2 times longer","4 times longer","The same","8 times longer"],0,"t = √(2h/g), so four times the height gives √4 = 2 times the time."],
+["fall","After 3 s of free fall on Earth (g ≈ 9.8 m/s²), the speed is about...",["9.8 m/s","19.6 m/s","29.4 m/s","44 m/s"],2,"v = g·t = 9.8 × 3 ≈ 29.4 m/s."],
+["ohm","A 12 V battery is connected to a 4 Ω resistor. What is the current?",["48 A","3 A","8 A","0.33 A"],1,"I = V / R = 12 / 4 = 3 A."],
+["ohm","The voltage is doubled and the resistance stays the same. The power becomes...",["2 times larger","4 times larger","The same","Half"],1,"P = V²/R, so doubling V makes the power 4 times larger."],
+["ohm","At constant voltage the resistance is doubled. The current...",["Doubles","Halves","Stays the same","Becomes four times larger"],1,"I = V / R, so a larger resistance gives a smaller current."],
+["dens","Which material floats in water (1000 kg/m³)?",["Iron (7870)","Aluminium (2700)","Ice (917)","Glass (2500)"],2,"Ice is less dense than water, so it floats."],
+["dens","Honey, water and olive oil are poured carefully into a glass. Which layer is on top?",["Honey","Water","Olive oil","They all mix at once"],2,"Olive oil (about 920 kg/m³) is the least dense, so it stays on top. Honey (about 1420 kg/m³) is at the bottom."],
+["dens","An iron block (7870 kg/m³) is placed in mercury (13534 kg/m³). It will...",["Sink to the bottom","Float","Dissolve","Spin in place"],1,"Iron is less dense than mercury, so it floats."],
+["pend","For small angles, the period of a simple pendulum depends on...",["Mass and length","Length and gravity","Mass only","The release angle only"],1,"T = 2π·√(L/g). The mass does not appear in the formula."],
+["pend","To double the period of a pendulum, the length must be...",["Doubled","Quadrupled","Halved","Tripled"],1,"T is proportional to √L, so four times the length gives twice the period."],
+["pend","The same pendulum on the Moon (weaker gravity) swings...",["Faster","Slower","At the same speed","It does not swing"],1,"A smaller g gives a longer period, so the swing is slower."],
+["orb","Kepler's third law connects the orbital period T with...",["The mass of the planet","The semi-major axis (T² ∝ a³)","The colour of the star","The launch angle"],1,"T² is proportional to a³: larger orbits take longer."],
+["orb","Where does a planet on an elliptical orbit move fastest?",["Closest to the star","Farthest from the star","The speed is always the same","Only at the midpoint"],0,"Angular momentum is conserved, so the planet speeds up as it gets closer to the star."],
+["orb","The escape speed is ___ the circular orbital speed at the same distance.",["√2 times","2 times","Equal to","Half of"],0,"v_escape = √2·v_circular, which is about 141% in the simulation."],
+["coll","Which quantity is conserved in every collision with no outside forces?",["Kinetic energy","Momentum","Speed of each ball","Velocity of each ball"],1,"Total momentum is always conserved. Kinetic energy is conserved only in elastic collisions."],
+["coll","Two equal balls collide elastically head-on and ball 2 is at rest. After the collision...",["Both stop","Ball 1 stops and ball 2 moves with the old speed of ball 1","Both move at half the speed","Ball 1 bounces back"],1,"Equal masses in an elastic collision exchange velocities."],
+["coll","In a perfectly inelastic collision the balls...",["Bounce apart","Stick together and move with one velocity","Always stop","Gain kinetic energy"],1,"They move together with a common velocity, and the loss of kinetic energy is the largest possible."],
+["snell","Light goes from air into glass. The ray bends...",["Toward the normal","Away from the normal","Not at all","Backward"],0,"Glass is optically denser, so light slows down and bends toward the normal."],
+["snell","Total internal reflection can happen when light goes from...",["Air to water","Water to air","Air to glass","Vacuum to diamond"],1,"It needs light to go from a higher refractive index to a lower one at a large enough angle."],
+["snell","Which is Snell's law?",["n₁·sinθ₁ = n₂·sinθ₂","n₁·cosθ₁ = n₂·cosθ₂","n₁·θ₁ = n₂·θ₂","n₁ + θ₁ = n₂ + θ₂"],0,"The product of the refractive index and the sine of the angle is the same on both sides of the surface."],
+["lens","A converging lens forms a real, inverted image when the object is...",["Inside the focal length","Beyond the focal length","Exactly at the lens","Never"],1,"For an object farther than f, the rays meet on the other side and form a real, inverted image."],
+["lens","Which is the thin lens equation?",["1/f = 1/dₒ + 1/dᵢ","f = dₒ + dᵢ","f = dₒ·dᵢ","1/f = dₒ − dᵢ"],0,"The reciprocals of the object distance and the image distance add up to the reciprocal of the focal length."],
+["lens","A magnifying glass works by placing the object...",["Inside the focal length of a converging lens","At twice the focal length","Far beyond the focal length","Behind a diverging lens"],0,"Inside f, a converging lens gives a virtual, upright and enlarged image."]
+];
+let qz={};
+const qb=$('#quiz_box');
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function bestGet(){try{return +localStorage.getItem("pl_best")||0}catch(e){return 0}}
+function bestSet(v){try{localStorage.setItem("pl_best",v)}catch(e){}}
+function qHome(){
+let s='<div class="qrow"><div><label for="qz_t">Topic</label><select id="qz_t">';
+for(const k in TOP)s+='<option value="'+k+'">'+TOP[k]+'</option>';
+s+='</select></div><div><label for="qz_n">Number of questions</label><select id="qz_n"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="99">All</option></select></div></div>';
+s+='<div class="btns"><button class="cta" data-qa="start">Start quiz</button></div><p class="note">'+QZ.length+' questions in total. Best score on this device: '+bestGet()+'%.</p>';
+qb.innerHTML=s;
+}
+function qStart(t,n){
+qz={t,n,list:shuf(QZ.filter(q=>t=="all"||q[0]==t)).slice(0,n),i:0,sc:0,st:0,ans:false};
+qShow();
+}
+function qShow(){
+const q=qz.list[qz.i],o=shuf([0,1,2,3]);
+qz.o=o;qz.ans=false;
+let s='<div class="bar"><i style="width:'+(qz.i/qz.list.length*100)+'%"></i></div><p class="note">Question '+(qz.i+1)+' of '+qz.list.length+'. Score: '+qz.sc+'. Streak: '+qz.st+'. Topic: '+TOP[q[0]]+'.</p><h3>'+q[1]+'</h3><div class="opts">';
+o.forEach((k,n)=>{s+='<button class="opt" data-o="'+n+'">'+q[2][k]+'</button>'});
+qb.innerHTML=s+'</div><div id="qfb"></div>';
+}
+function qAns(n){
+if(qz.ans)return;
+qz.ans=true;
+const q=qz.list[qz.i],c=qz.o.indexOf(q[3]),ok=n==c;
+if(ok){qz.sc++;qz.st++}else qz.st=0;
+qb.querySelectorAll('.opt').forEach((b,i)=>{b.classList.toggle('ok',i==c);b.classList.toggle('bad',i==n&&!ok)});
+const last=qz.i==qz.list.length-1;
+$('#qfb').innerHTML='<div class="fb"><b>'+(ok?'Correct!':'Not quite.')+'</b> '+q[4]+'</div><div class="btns"><button class="cta" data-qa="next">'+(last?'See result':'Next question')+'</button></div>';
+}
+function qEnd(){
+const p=Math.round(qz.sc/qz.list.length*100),b=bestGet();
+if(p>b)bestSet(p);
+qb.innerHTML='<h3>Quiz complete</h3><div class="big">'+qz.sc+' / '+qz.list.length+' ('+p+'%)</div><p class="note">'+(p>=80?'Excellent work! You know this topic well.':p>=50?'Good job. Run the experiments again and try once more.':'Keep experimenting: change the parameters and watch what happens, then try again.')+' Best score on this device: '+Math.max(p,b)+'%.</p><div class="btns"><button class="cta" data-qa="again">Try again</button><button data-qa="home">Change topic</button></div>';
+}
+
+/* ---------- FAQ ---------- */
+const FAQ=[
+["Why is air resistance ignored in the simulations?","Ignoring air resistance keeps the equations simple and shows the pure effect of gravity. In real life drag lowers the height and range of a projectile and limits the speed of a falling object."],
+["Why do mass and size not change the fall time or the pendulum period?","Gravity pulls harder on a heavier object, but a heavier object also needs a larger force to speed up. The two effects cancel, so the acceleration is the same for every mass."],
+["Are the simulations accurate?","They use the real equations of physics with ideal conditions: no friction, no air, perfect wires and rigid balls. The pendulum and the orbit are solved step by step on your device, so they stay accurate even at large angles and for strongly stretched ellipses."],
+["What is the difference between elastic and inelastic collisions?","Momentum is conserved in both. In an elastic collision kinetic energy is also conserved and the balls bounce apart. In an inelastic collision some kinetic energy turns into heat and deformation, and in a perfectly inelastic collision the balls stick together."],
+["Why does a heavy object sometimes float?","Floating depends on average density, not weight. Mercury is so dense that even iron floats on it, and a steel ship floats because its hollow shape makes its average density lower than the density of water."],
+["What is the critical angle in Snell's law?","When light goes from a material with a higher refractive index to one with a lower index, the refracted ray bends away from the normal. At the critical angle it runs along the surface, and beyond it all the light is reflected back."],
+["What units does the orbit simulation use?","Distances are in astronomical units (1 AU is the average Earth-Sun distance), time is in years and the star mass is in solar masses. With these units Kepler's third law becomes T² = a³ / M. Speeds are shown in km/s."],
+["Why is the vertical scale of the lens simulator stretched?","The distances along the axis are much larger than the heights of the objects, so the vertical scale is stretched to keep the rays readable. The positions of the image and the magnification are still calculated exactly."],
+["Does PhysicsLab work on phones and tablets?","Yes. The layout adapts to small screens, the sliders work with touch, and everything runs in your browser without installation."]
+];
+$('#faq_list').innerHTML=FAQ.map(f=>'<details><summary>'+f[0]+'</summary><p>'+f[1]+'</p></details>').join('');
+$('#faq_q').addEventListener("input",e=>{
+const v=e.target.value.trim().toLowerCase();let n=0;
+document.querySelectorAll('#faq_list details').forEach(d=>{const m=d.textContent.toLowerCase().includes(v);d.hidden=!m;if(m)n++});
+$('#faq_none').hidden=n>0;
+});
+
+Object.keys(cfg).forEach(k=>{build(k);if(RS[k])RS[k]();upd(k)});
+qHome();
+document.addEventListener("click",e=>{
+const b=e.target.closest("button");if(!b)return;
+if(b.dataset.t)show(b.dataset.t);
+else if(b.dataset.a)act(b.dataset.k,b.dataset.a);
+else if(b.dataset.o!==undefined)qAns(+b.dataset.o);
+else if(b.dataset.qa){
+const a=b.dataset.qa;
+if(a=="start")qStart($('#qz_t').value,+$('#qz_n').value);
+else if(a=="again")qStart(qz.t,qz.n);
+else if(a=="next"){qz.i++;if(qz.i>=qz.list.length)qEnd();else qShow()}
+else qHome();
+}
+});
+window.addEventListener("resize",sizeCur);
+show("proj");
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
